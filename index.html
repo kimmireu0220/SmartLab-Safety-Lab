@@ -291,6 +291,8 @@
         const noticeWrap = document.getElementById("notice-wrap");
         const noticeToggle = document.getElementById("notice-toggle");
         const noticeHint = document.getElementById("notice-hint");
+        let zone1IssueTimer = null;
+        let zone2IssueTimer = null;
 
         function getCurrentTime() {
             const now = new Date();
@@ -362,21 +364,44 @@
             }
         }
 
+        function scheduleZone1Issue() {
+            clearTimeout(zone1IssueTimer);
+            zone1IssueTimer = setTimeout(() => {
+                triggerZone1Issue();
+                scheduleZone1Issue();
+            }, 5000);
+        }
+
+        function scheduleZone2Issue() {
+            clearTimeout(zone2IssueTimer);
+            zone2IssueTimer = setTimeout(() => {
+                triggerZone2Issue();
+                scheduleZone2Issue();
+            }, 10000);
+        }
+
         function recoverZone1() {
             setZoneState("zone_1", "safe", "정상 - 흄후드 가동 중");
             addEventLog("zone_1 복구 확인 -> 정상");
+            scheduleZone1Issue();
         }
 
         function recoverZone2() {
             setZoneState("zone_2", "safe", "정상 - 고온 가열기 대기");
             addEventLog("zone_2 확인 -> 정상");
+            scheduleZone2Issue();
         }
 
         renderZone("zone_1", currentState.zone_1);
         renderZone("zone_2", currentState.zone_2);
         addEventLog("데모 모드 시작");
         zone1ViewBtn.addEventListener("click", () => {
-            openVideoModal("흄후드 정상 작동 화면", "static/zone1-safe-demo.mp4");
+            if (currentState.zone_1.status === "safe") {
+                openVideoModal("흄후드 정상 작동 화면", "static/zone1-safe-demo.mp4");
+            } else {
+                addEventLog("zone_1 이슈 영상 확인 요청");
+                openVideoModal("흄후드 이슈 발생 화면", "static/zone1-issue-demo.mp4");
+            }
         });
         zone2ViewBtn.addEventListener("click", () => {
             if (currentState.zone_2.status === "safe") {
@@ -397,8 +422,8 @@
             noticeToggle.setAttribute("aria-expanded", String(isOpen));
             noticeHint.innerText = isOpen ? "클릭하여 닫기" : "클릭하여 열기";
         });
-        setInterval(triggerZone1Issue, 5000);
-        setInterval(triggerZone2Issue, 10000);
+        scheduleZone1Issue();
+        scheduleZone2Issue();
     </script>
 </body>
 </html>
