@@ -1,25 +1,23 @@
 # SmartLab-Safety-Lab
 
-SmartLab 실험실 안전 상태 대시보드(Flask) 프로젝트입니다.
+SmartLab 실험실 안전 상태 모니터링 정적 데모 프로젝트입니다.
 
-## Local Run
+## Deploy (GitHub Pages)
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
+이 프로젝트는 정적 데모 페이지(`index.html`)로 동작하며, GitHub Pages에 바로 배포할 수 있습니다.
+Flask 서버 없이 링크로 바로 시연 가능합니다.
 
-## Deploy (Render)
+1. GitHub 저장소 -> `Settings` -> `Pages`
+2. Source를 `GitHub Actions`로 선택
+3. `main` 브랜치에 푸시
+4. Actions의 `Deploy Static Site to GitHub Pages` 워크플로우 완료 확인
 
-1. [Render](https://render.com) 가입/로그인
-2. `New +` -> `Web Service`
-3. GitHub 저장소 `kimmireu0220/SmartLab-Safety-Lab` 연결
-4. 설정값 입력
-   - Environment: `Python 3`
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
-5. `Create Web Service` 클릭
+배포 URL 예시: `https://kimmireu0220.github.io/SmartLab-Safety-Lab/`
 
-배포 완료 후 발급되는 URL(예: `https://smartlab-safety-lab.onrender.com`)로 외부에서 접속 가능합니다.
+## GitHub Actions 자동 배포
+
+`main` 브랜치에 푸시할 때마다 GitHub Pages 자동 배포가 실행됩니다.
+
+워크플로우 파일: `.github/workflows/deploy-render.yml`
+
+정적 자산 빌드 결과물은 `dist/`에 생성되어 Pages에 배포됩니다.

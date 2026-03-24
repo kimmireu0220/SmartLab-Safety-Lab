@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INHA LabGuard 대시보드</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            background-image: linear-gradient(rgba(10, 14, 32, 0.78), rgba(10, 14, 32, 0.78)), url("static/lab-bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .hero { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+        .hero-logo { width: 92px; height: 92px; border-radius: 50%; background: #f5f5f5; padding: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); object-fit: contain; }
+        h1 { color: #00d2ff; text-align: center; margin: 0; }
+        .subtitle { text-align: center; color: #aaaaaa; margin: 0; }
+        .system-meta { display: flex; gap: 10px; margin-top: 8px; }
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid #2f3d5a;
+            border-radius: 999px;
+            background: rgba(14, 20, 40, 0.55);
+            color: #dfe7ff;
+            font-size: 13px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff88; }
+        .dot.offline { background: #ff3333; }
+        .dashboard { display: flex; justify-content: center; gap: 30px; margin-top: 40px; flex-wrap: wrap; }
+        .zone-card { background: #2a2a40; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); text-align: center; transition: all 0.3s ease; }
+        .safe { border: 3px solid #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+        .warning { border: 3px solid #ffaa00; background-color: #40331a; }
+        .critical { border: 3px solid #ff3333; background-color: #4d1a1a; animation: pulse 1s infinite; }
+        .zone-action-btn {
+            margin-top: 12px;
+            display: none;
+            padding: 8px 14px;
+            border: 1px solid #2f88ff;
+            border-radius: 8px;
+            background: rgba(32, 75, 156, 0.45);
+            color: #e6f0ff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .zone-action-btn:hover { background: rgba(52, 102, 199, 0.65); }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 51, 51, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); } }
+        .demo-controls {
+            margin-top: 42px;
+            padding: 24px;
+            background: transparent;
+            border: 1px solid #2f3d5a;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        .event-log {
+            margin: 16px auto 0;
+            max-width: 560px;
+            text-align: left;
+            color: #e8edf9;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .recovery-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .recovery-btn {
+            border: 1px solid #4f648f;
+            background: rgba(33, 46, 73, 0.75);
+            color: #e6eeff;
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .recovery-btn:hover { background: rgba(55, 78, 123, 0.85); }
+        .event-log h4 { margin: 0 0 8px 0; font-size: 13px; color: #c8d6ff; }
+        .event-log ul { margin: 0; padding-left: 18px; }
+        .event-log li { margin-bottom: 3px; }
+        .video-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        .video-modal-content {
+            width: min(860px, 92vw);
+            background: #101626;
+            border: 1px solid #2f3d5a;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .video-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #dfe7ff;
+            font-weight: 700;
+        }
+        .video-close-btn {
+            border: 0;
+            background: transparent;
+            color: #dfe7ff;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .video-modal video { width: 100%; border-radius: 8px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <img class="hero-logo" src="static/inha-logo.png" alt="인하대학교 로고">
+        <h1>INHA LabGuard</h1>
+        <p class="subtitle">정적 데모 모드로 실행 중...</p>
+        <div class="system-meta">
+            <span class="meta-badge"><span id="conn-dot" class="dot"></span><span id="conn-text">로컬 시뮬레이션 정상</span></span>
+            <span class="meta-badge">Static Demo</span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div id="card-zone_1" class="zone-card safe">
+            <h2>🧪 흄후드 (Zone 1)</h2>
+            <h3 id="msg-zone_1" style="color: #00ff88;">정상 - 흄후드 가동 중</h3>
+            <p>최근 업데이트: <span id="time-zone_1">-</span></p>
+            <button id="zone1-view-btn" class="zone-action-btn" type="button">화면 보기</button>
+        </div>
+        <div id="card-zone_2" class="zone-card safe">
+            <h2>🔥 고온 가열기 (Zone 2)</h2>
+            <h3 id="msg-zone_2" style="color: #00ff88;">정상 - 고온 가열기 대기</h3>
+            <p>최근 업데이트: <span id="time-zone_2">-</span></p>
+        </div>
+    </div>
+
+    <div class="demo-controls">
+        <h3>로그.</h3>
+        <div class="event-log">
+            <h4>최근 이벤트</h4>
+            <ul id="event-log-list">
+                <li>대기 중...</li>
+            </ul>
+            <div class="recovery-actions">
+                <button id="recover-zone1-btn" class="recovery-btn" type="button">흄후드 복구 확인</button>
+                <button id="recover-zone2-btn" class="recovery-btn" type="button">고온 가열기 확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="video-modal">
+        <div class="video-modal-content">
+            <div class="video-modal-head">
+                <span>흄후드 정상 작동 화면</span>
+                <button id="video-close-btn" class="video-close-btn" type="button">&times;</button>
+            </div>
+            <video id="zone1-video" controls preload="metadata">
+                <source src="static/hood-safe-demo.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <script>
+        const currentState = {
+            zone_1: { status: "safe", message: "정상 - 흄후드 가동 중", time: "-" },
+            zone_2: { status: "safe", message: "정상 - 고온 가열기 대기", time: "-" }
+        };
+        const zone1ViewBtn = document.getElementById("zone1-view-btn");
+        const videoModal = document.getElementById("video-modal");
+        const zone1Video = document.getElementById("zone1-video");
+        const videoCloseBtn = document.getElementById("video-close-btn");
+        const recoverZone1Btn = document.getElementById("recover-zone1-btn");
+        const recoverZone2Btn = document.getElementById("recover-zone2-btn");
+
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+        }
+
+        function addEventLog(text) {
+            const list = document.getElementById("event-log-list");
+            const item = document.createElement("li");
+            item.innerText = `[${getCurrentTime()}] ${text}`;
+            list.prepend(item);
+            while (list.children.length > 6) list.removeChild(list.lastChild);
+        }
+
+        function renderZone(zone, info) {
+            const card = document.getElementById(`card-${zone}`);
+            const msg = document.getElementById(`msg-${zone}`);
+            const timeStr = document.getElementById(`time-${zone}`);
+
+            card.className = `zone-card ${info.status}`;
+            msg.innerText = info.message;
+            timeStr.innerText = info.time;
+
+            if (info.status === "safe") msg.style.color = "#00ff88";
+            else if (info.status === "warning") msg.style.color = "#ffaa00";
+            else msg.style.color = "#ff3333";
+
+            if (zone === "zone_1") {
+                zone1ViewBtn.style.display = info.status === "safe" ? "inline-block" : "none";
+                if (info.status !== "safe") closeVideoModal();
+            }
+        }
+
+        function setZoneState(zone, status, message) {
+            currentState[zone] = { status, message, time: getCurrentTime() };
+            renderZone(zone, currentState[zone]);
+        }
+
+        function openVideoModal() {
+            videoModal.style.display = "flex";
+            zone1Video.currentTime = 0;
+            zone1Video.play().catch(() => {});
+        }
+
+        function closeVideoModal() {
+            videoModal.style.display = "none";
+            zone1Video.pause();
+        }
+
+        function triggerPowerOff() {
+            if (currentState.zone_1.status === "safe") {
+                setZoneState("zone_1", "warning", "경고 - 흄후드 전원 꺼짐 감지");
+                addEventLog("zone_1 상태 변경 -> 경고 - 흄후드 전원 꺼짐 감지");
+            }
+            if (currentState.zone_2.status === "safe") {
+                setZoneState("zone_2", "critical", "위험 - 고온 가열기 전원 꺼짐 감지");
+                addEventLog("zone_2 상태 변경 -> 위험 - 고온 가열기 전원 꺼짐 감지");
+            }
+        }
+
+        function recoverZone1() {
+            setZoneState("zone_1", "safe", "정상 - 흄후드 가동 중");
+            addEventLog("zone_1 복구 확인 -> 정상");
+        }
+
+        function recoverZone2() {
+            setZoneState("zone_2", "safe", "정상 - 고온 가열기 대기");
+            addEventLog("zone_2 확인 -> 정상");
+        }
+
+        renderZone("zone_1", currentState.zone_1);
+        renderZone("zone_2", currentState.zone_2);
+        addEventLog("정적 데모 모드 시작");
+        zone1ViewBtn.addEventListener("click", openVideoModal);
+        videoCloseBtn.addEventListener("click", closeVideoModal);
+        recoverZone1Btn.addEventListener("click", recoverZone1);
+        recoverZone2Btn.addEventListener("click", recoverZone2);
+        videoModal.addEventListener("click", (event) => {
+            if (event.target === videoModal) closeVideoModal();
+        });
+        setInterval(triggerPowerOff, 5000);
+    </script>
+</body>
+</html>
