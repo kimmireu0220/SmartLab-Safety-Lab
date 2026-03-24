@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>INHA LabGuard 대시보드</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            color: #ffffff;
+            padding: 20px;
+            background-image: linear-gradient(rgba(10, 14, 32, 0.78), rgba(10, 14, 32, 0.78)), url("{{ url_for('static', filename='lab-bg.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .hero { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+        .hero-logo { width: 92px; height: 92px; border-radius: 50%; background: #f5f5f5; padding: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); object-fit: contain; }
+        h1 { color: #00d2ff; text-align: center; margin: 0; }
+        .subtitle { text-align: center; color: #aaaaaa; margin: 0; }
+        .system-meta { display: flex; gap: 10px; margin-top: 8px; }
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid #2f3d5a;
+            border-radius: 999px;
+            background: rgba(14, 20, 40, 0.55);
+            color: #dfe7ff;
+            font-size: 13px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff88; }
+        .dot.offline { background: #ff3333; }
+        .dashboard { display: flex; justify-content: center; gap: 30px; margin-top: 40px; }
+        .zone-card { background: #2a2a40; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); text-align: center; transition: all 0.3s ease; }
+        .safe { border: 3px solid #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+        .warning { border: 3px solid #ffaa00; background-color: #40331a; }
+        .critical { border: 3px solid #ff3333; background-color: #4d1a1a; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 51, 51, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); } }
+        .demo-controls {
+            margin-top: 42px;
+            padding: 24px;
+            background: transparent;
+            border: 1px solid #2f3d5a;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        .demo-controls h3 { margin: 0; color: #dfe7ff; }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 190px 128px 128px;
+            justify-content: center;
+            column-gap: 12px;
+            row-gap: 14px;
+            align-items: center;
+            width: fit-content;
+            margin: 16px auto 0;
+        }
+        .control-row { display: contents; }
+        .control-label { text-align: left; font-weight: 700; color: #e8e8e8; }
+        .control-buttons { display: contents; }
+        button { width: 128px; height: 40px; cursor: pointer; font-weight: bold; border-radius: 6px; border: none; text-align: center; }
+        .btn-safe { background: #00ff88; color: black; }
+        .btn-warn { background: #ffaa00; color: black; }
+        .btn-crit { background: #ff3333; color: white; }
+        .btn-neutral { background: #3a6ff7; color: #ffffff; width: auto; padding: 0 14px; }
+        .scenario-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .event-log {
+            margin: 16px auto 0;
+            max-width: 560px;
+            text-align: left;
+            color: #e8edf9;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .event-log h4 { margin: 0 0 8px 0; font-size: 13px; color: #c8d6ff; }
+        .event-log ul { margin: 0; padding-left: 18px; }
+        .event-log li { margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <img class="hero-logo" src="{{ url_for('static', filename='inha-logo.png') }}" alt="인하대학교 로고">
+        <h1>INHA LabGuard</h1>
+        <p class="subtitle">실시간 객체 인식 및 비식별화 데이터 수신 중...</p>
+        <div class="system-meta">
+            <span class="meta-badge"><span id="conn-dot" class="dot"></span><span id="conn-text">엣지 게이트웨이 연결 정상</span></span>
+            <span class="meta-badge">Demo Mode</span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div id="card-zone_1" class="zone-card safe">
+            <h2>🧪 흄후드 (Zone 1)</h2>
+            <h3 id="msg-zone_1" style="color: #00ff88;">정상 작동 중</h3>
+            <p>최근 업데이트: <span id="time-zone_1">-</span></p>
+        </div>
+        <div id="card-zone_2" class="zone-card safe">
+            <h2>🔥 고온 가열기 (Zone 2)</h2>
+            <h3 id="msg-zone_2" style="color: #00ff88;">정상 대기</h3>
+            <p>최근 업데이트: <span id="time-zone_2">-</span></p>
+        </div>
+    </div>
+
+    <div class="demo-controls">
+        <h3>[시연용 제어 패널] AI 감지 이벤트 강제 발생</h3>
+        <div class="scenario-actions">
+            <button class="btn-neutral" onclick="runDemoScenario()">데모 시나리오 자동 재생</button>
+            <button class="btn-neutral" onclick="resetAllZones()">전체 정상화</button>
+        </div>
+        <div class="controls-grid">
+            <div class="control-row">
+                <span class="control-label">Zone 1 (흄후드):</span>
+                <div class="control-buttons">
+                    <button class="btn-safe" onclick="updateStatus('zone_1', 'safe', '정상 작동 중')">정상 복구</button>
+                    <button class="btn-warn" onclick="updateStatus('zone_1', 'warning', '⚠️ 보안경 미착용 감지 (1차 경고)')">보안경 미착용</button>
+                </div>
+            </div>
+            <div class="control-row">
+                <span class="control-label">Zone 2 (고열 장비):</span>
+                <div class="control-buttons">
+                    <button class="btn-safe" onclick="updateStatus('zone_2', 'safe', '정상 대기')">정상 복구</button>
+                    <button class="btn-crit" onclick="updateStatus('zone_2', 'critical', '🚨 장비 가동 중 자리 비움 (책임자 알림!)')">자리 비움</button>
+                </div>
+            </div>
+        </div>
+        <div class="event-log">
+            <h4>최근 이벤트</h4>
+            <ul id="event-log-list">
+                <li>대기 중...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0') + ":" + String(now.getSeconds()).padStart(2, '0');
+        }
+
+        let isScenarioRunning = false;
+        let isPolling = false;
+
+        function addEventLog(text) {
+            const list = document.getElementById('event-log-list');
+            const item = document.createElement('li');
+            item.innerText = `[${getCurrentTime()}] ${text}`;
+            list.prepend(item);
+            while (list.children.length > 5) list.removeChild(list.lastChild);
+        }
+
+        function setConnectionStatus(isOnline) {
+            const dot = document.getElementById('conn-dot');
+            const text = document.getElementById('conn-text');
+            if (isOnline) {
+                dot.classList.remove('offline');
+                text.innerText = '엣지 게이트웨이 연결 정상';
+            } else {
+                dot.classList.add('offline');
+                text.innerText = '엣지 게이트웨이 연결 지연';
+            }
+        }
+
+        async function updateStatus(zone, status, message, silent = false) {
+            try {
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zone: zone, status: status, message: message, time: getCurrentTime() })
+                });
+                if (!response.ok) throw new Error('update failed');
+                if (!silent) addEventLog(`${zone} -> ${message}`);
+                return true;
+            } catch (error) {
+                addEventLog(`${zone} 업데이트 실패`);
+                return false;
+            }
+        }
+
+        async function resetAllZones() {
+            await updateStatus('zone_1', 'safe', '정상 작동 중');
+            await updateStatus('zone_2', 'safe', '정상 대기');
+            addEventLog('전체 정상화 실행');
+        }
+
+        function sleep(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        async function runDemoScenario() {
+            if (isScenarioRunning) return;
+            isScenarioRunning = true;
+            addEventLog('데모 시나리오 시작');
+            await updateStatus('zone_1', 'warning', '⚠️ 보안경 미착용 감지 (1차 경고)', true);
+            await sleep(2200);
+            await updateStatus('zone_2', 'critical', '🚨 장비 가동 중 자리 비움 (책임자 알림!)', true);
+            await sleep(2200);
+            await updateStatus('zone_1', 'safe', '정상 작동 중', true);
+            await sleep(1500);
+            await updateStatus('zone_2', 'safe', '정상 대기', true);
+            addEventLog('데모 시나리오 완료');
+            isScenarioRunning = false;
+        }
+
+        async function pollStatus() {
+            if (isPolling) return;
+            isPolling = true;
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('status failed');
+                const data = await response.json();
+                setConnectionStatus(true);
+
+                for (const [zone, info] of Object.entries(data)) {
+                    const card = document.getElementById(`card-${zone}`);
+                    const msg = document.getElementById(`msg-${zone}`);
+                    const timeStr = document.getElementById(`time-${zone}`);
+
+                    msg.innerText = info.message;
+                    timeStr.innerText = info.time;
+
+                    card.className = `zone-card ${info.status}`;
+                    if (info.status === 'safe') msg.style.color = '#00ff88';
+                    else if (info.status === 'warning') msg.style.color = '#ffaa00';
+                    else if (info.status === 'critical') msg.style.color = '#ff3333';
+                }
+            } catch (error) {
+                setConnectionStatus(false);
+            } finally {
+                isPolling = false;
+            }
+        }
+
+        pollStatus();
+        setInterval(pollStatus, 1000);
+    </script>
+</body>
+</html>
