@@ -16,11 +16,69 @@
             background-attachment: fixed;
             min-height: 100vh;
         }
-        .hero { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin: 8px auto 0;
+            width: min(1100px, 100%);
+            position: relative;
+            padding-top: 6px;
+        }
         .hero-logo { width: 92px; height: 92px; border-radius: 50%; background: #f5f5f5; padding: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); object-fit: contain; }
         h1 { color: #00d2ff; text-align: center; margin: 0; }
         .subtitle { text-align: center; color: #aaaaaa; margin: 0; }
         .system-meta { display: flex; gap: 10px; margin-top: 8px; }
+        .notice-wrap {
+            width: min(420px, 92vw);
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            z-index: 1000;
+        }
+        .notice-toggle {
+            width: 100%;
+            border: 1px solid #365083;
+            background: rgba(16, 27, 54, 0.68);
+            color: #dfe9ff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .notice-left { display: inline-flex; align-items: center; gap: 10px; }
+        .notice-icon-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            border: 1px solid #4f78c2;
+            background: rgba(66, 96, 163, 0.7);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 0 0 3px rgba(79, 120, 194, 0.18);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .notice-toggle:hover .notice-icon-btn { transform: scale(1.06); background: rgba(85, 122, 194, 0.85); }
+        .notice-hint { display: none; }
+        .notice-body {
+            display: none;
+            margin-top: 6px;
+            border: 1px solid #2f3d5a;
+            background: rgba(14, 22, 42, 0.64);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #cdd8f4;
+            font-size: 13px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .notice-wrap.open .notice-body { display: block; }
         .meta-badge {
             display: inline-flex;
             align-items: center;
@@ -35,29 +93,56 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff88; }
         .dot.offline { background: #ff3333; }
         .dashboard { display: flex; justify-content: center; gap: 30px; margin-top: 40px; flex-wrap: wrap; }
-        .zone-card { background: #2a2a40; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); text-align: center; transition: all 0.3s ease; }
+        .zone-card {
+            background: #2a2a40;
+            padding: 30px;
+            border-radius: 15px;
+            width: 350px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 190px;
+            padding-bottom: 10px;
+        }
+        .zone-card h2 { margin: 0 0 10px 0; }
+        .zone-card h3 { margin: 0; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+        .zone-card p { margin: 8px 0 0 0; }
         .safe { border: 3px solid #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
         .warning { border: 3px solid #ffaa00; background-color: #40331a; }
         .critical { border: 3px solid #ff3333; background-color: #4d1a1a; animation: pulse 1s infinite; }
         .zone-action-btn {
-            margin-top: 12px;
             display: none;
-            padding: 8px 14px;
+            width: 92px;
+            height: 36px;
             border: 1px solid #2f88ff;
             border-radius: 8px;
             background: rgba(32, 75, 156, 0.45);
             color: #e6f0ff;
             font-weight: 700;
             cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
         }
         .zone-action-btn:hover { background: rgba(52, 102, 199, 0.65); }
+        .card-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            margin-top: 14px;
+        }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 51, 51, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); } }
         .demo-controls {
             margin-top: 42px;
-            padding: 24px;
-            background: transparent;
-            border: 1px solid #2f3d5a;
-            border-radius: 10px;
+            padding: 18px 20px;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+            background: rgba(14, 22, 42, 0.35);
+            border: 1px solid #365083;
+            border-radius: 12px;
             text-align: center;
             backdrop-filter: blur(2px);
         }
@@ -68,21 +153,21 @@
             color: #e8edf9;
             font-size: 13px;
             line-height: 1.45;
-        }
-        .recovery-actions {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            padding: 0;
         }
         .recovery-btn {
+            width: 92px;
+            height: 36px;
             border: 1px solid #4f648f;
             background: rgba(33, 46, 73, 0.75);
             color: #e6eeff;
             border-radius: 8px;
-            padding: 7px 12px;
             font-weight: 700;
             cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
         }
         .recovery-btn:hover { background: rgba(55, 78, 123, 0.85); }
         .event-log h4 { margin: 0 0 8px 0; font-size: 13px; color: #c8d6ff; }
@@ -127,10 +212,23 @@
     <div class="hero">
         <img class="hero-logo" src="static/inha-logo.png" alt="인하대학교 로고">
         <h1>INHA LabGuard</h1>
-        <p class="subtitle">정적 데모 모드로 실행 중...</p>
+        <p class="subtitle">데모 모드로 실행 중...</p>
         <div class="system-meta">
             <span class="meta-badge"><span id="conn-dot" class="dot"></span><span id="conn-text">로컬 시뮬레이션 정상</span></span>
             <span class="meta-badge">Static Demo</span>
+        </div>
+        <div id="notice-wrap" class="notice-wrap open">
+            <button id="notice-toggle" class="notice-toggle" type="button" aria-expanded="true">
+                <span class="notice-left">
+                    <span class="notice-icon-btn">📢</span>
+                    <span>공지사항</span>
+                </span>
+                <span id="notice-hint" class="notice-hint"></span>
+            </button>
+            <div class="notice-body">
+                본 데모는 10초마다 장비 이상 상황을 자동으로 발생시킵니다.<br>
+                각 카드의 <strong>복구 확인</strong> 버튼을 누르면 장비 상태가 정상으로 복구됩니다.
+            </div>
         </div>
     </div>
 
@@ -139,26 +237,28 @@
             <h2>🧪 흄후드 (Zone 1)</h2>
             <h3 id="msg-zone_1" style="color: #00ff88;">정상 - 흄후드 가동 중</h3>
             <p>최근 업데이트: <span id="time-zone_1">-</span></p>
-            <button id="zone1-view-btn" class="zone-action-btn" type="button">화면 보기</button>
+            <div class="card-actions">
+                <button id="zone1-view-btn" class="zone-action-btn" type="button">영상 확인</button>
+                <button id="recover-zone1-btn" class="recovery-btn" type="button">복구 확인</button>
+            </div>
         </div>
         <div id="card-zone_2" class="zone-card safe">
             <h2>🔥 고온 가열기 (Zone 2)</h2>
             <h3 id="msg-zone_2" style="color: #00ff88;">정상 - 고온 가열기 대기</h3>
             <p>최근 업데이트: <span id="time-zone_2">-</span></p>
+            <div class="card-actions">
+                <button id="zone2-view-btn" class="zone-action-btn" type="button">영상 확인</button>
+                <button id="recover-zone2-btn" class="recovery-btn" type="button">복구 확인</button>
+            </div>
         </div>
     </div>
 
     <div class="demo-controls">
-        <h3>로그.</h3>
+        <h3>Event Timeline</h3>
         <div class="event-log">
-            <h4>최근 이벤트</h4>
             <ul id="event-log-list">
                 <li>대기 중...</li>
             </ul>
-            <div class="recovery-actions">
-                <button id="recover-zone1-btn" class="recovery-btn" type="button">흄후드 복구 확인</button>
-                <button id="recover-zone2-btn" class="recovery-btn" type="button">고온 가열기 확인</button>
-            </div>
         </div>
     </div>
 
@@ -169,7 +269,7 @@
                 <button id="video-close-btn" class="video-close-btn" type="button">&times;</button>
             </div>
             <video id="zone1-video" controls preload="metadata">
-                <source src="static/hood-safe-demo.mp4" type="video/mp4">
+                <source src="static/zone1-safe-demo.mp4" type="video/mp4">
             </video>
         </div>
     </div>
@@ -182,9 +282,15 @@
         const zone1ViewBtn = document.getElementById("zone1-view-btn");
         const videoModal = document.getElementById("video-modal");
         const zone1Video = document.getElementById("zone1-video");
+        const zone1VideoSource = zone1Video.querySelector("source");
         const videoCloseBtn = document.getElementById("video-close-btn");
         const recoverZone1Btn = document.getElementById("recover-zone1-btn");
+        const zone2ViewBtn = document.getElementById("zone2-view-btn");
         const recoverZone2Btn = document.getElementById("recover-zone2-btn");
+        const modalTitle = document.querySelector(".video-modal-head span");
+        const noticeWrap = document.getElementById("notice-wrap");
+        const noticeToggle = document.getElementById("notice-toggle");
+        const noticeHint = document.getElementById("notice-hint");
 
         function getCurrentTime() {
             const now = new Date();
@@ -213,8 +319,13 @@
             else msg.style.color = "#ff3333";
 
             if (zone === "zone_1") {
-                zone1ViewBtn.style.display = info.status === "safe" ? "inline-block" : "none";
+                zone1ViewBtn.style.display = "inline-block";
+                recoverZone1Btn.style.display = info.status === "safe" ? "none" : "inline-block";
                 if (info.status !== "safe") closeVideoModal();
+            }
+            if (zone === "zone_2") {
+                zone2ViewBtn.style.display = "inline-block";
+                recoverZone2Btn.style.display = info.status === "safe" ? "none" : "inline-block";
             }
         }
 
@@ -223,7 +334,10 @@
             renderZone(zone, currentState[zone]);
         }
 
-        function openVideoModal() {
+        function openVideoModal(title, videoSrc) {
+            modalTitle.innerText = title;
+            zone1VideoSource.src = videoSrc;
+            zone1Video.load();
             videoModal.style.display = "flex";
             zone1Video.currentTime = 0;
             zone1Video.play().catch(() => {});
@@ -240,8 +354,8 @@
                 addEventLog("zone_1 상태 변경 -> 경고 - 흄후드 전원 꺼짐 감지");
             }
             if (currentState.zone_2.status === "safe") {
-                setZoneState("zone_2", "critical", "위험 - 고온 가열기 전원 꺼짐 감지");
-                addEventLog("zone_2 상태 변경 -> 위험 - 고온 가열기 전원 꺼짐 감지");
+                setZoneState("zone_2", "critical", "위험 - 고온 가열기 가동 중 자리 비움 감지");
+                addEventLog("zone_2 상태 변경 -> 위험 - 고온 가열기 가동 중 자리 비움 감지");
             }
         }
 
@@ -257,15 +371,30 @@
 
         renderZone("zone_1", currentState.zone_1);
         renderZone("zone_2", currentState.zone_2);
-        addEventLog("정적 데모 모드 시작");
-        zone1ViewBtn.addEventListener("click", openVideoModal);
+        addEventLog("데모 모드 시작");
+        zone1ViewBtn.addEventListener("click", () => {
+            openVideoModal("흄후드 정상 작동 화면", "static/zone1-safe-demo.mp4");
+        });
+        zone2ViewBtn.addEventListener("click", () => {
+            if (currentState.zone_2.status === "safe") {
+                openVideoModal("고온 가열기 정상 상태 화면", "static/zone2-safe-demo.mp4");
+            } else {
+                addEventLog("zone_2 이슈 영상 확인 요청");
+                openVideoModal("고온 가열기 이슈 발생 화면", "static/zone2-issue-demo.mp4");
+            }
+        });
         videoCloseBtn.addEventListener("click", closeVideoModal);
         recoverZone1Btn.addEventListener("click", recoverZone1);
         recoverZone2Btn.addEventListener("click", recoverZone2);
         videoModal.addEventListener("click", (event) => {
             if (event.target === videoModal) closeVideoModal();
         });
-        setInterval(triggerPowerOff, 5000);
+        noticeToggle.addEventListener("click", () => {
+            const isOpen = noticeWrap.classList.toggle("open");
+            noticeToggle.setAttribute("aria-expanded", String(isOpen));
+            noticeHint.innerText = isOpen ? "클릭하여 닫기" : "클릭하여 열기";
+        });
+        setInterval(triggerPowerOff, 10000);
     </script>
 </body>
 </html>
