@@ -226,7 +226,7 @@
                 <span id="notice-hint" class="notice-hint"></span>
             </button>
             <div class="notice-body">
-                본 데모는 10초마다 장비 이상 상황을 자동으로 발생시킵니다.<br>
+                본 데모는 Zone 1은 5초마다, Zone 2는 10초마다 이상 상황을 자동으로 발생시킵니다.<br>
                 각 카드의 <strong>복구 확인</strong> 버튼을 누르면 장비 상태가 정상으로 복구됩니다.
             </div>
         </div>
@@ -348,11 +348,14 @@
             zone1Video.pause();
         }
 
-        function triggerPowerOff() {
+        function triggerZone1Issue() {
             if (currentState.zone_1.status === "safe") {
                 setZoneState("zone_1", "warning", "경고 - 흄후드 전원 꺼짐 감지");
                 addEventLog("zone_1 상태 변경 -> 경고 - 흄후드 전원 꺼짐 감지");
             }
+        }
+
+        function triggerZone2Issue() {
             if (currentState.zone_2.status === "safe") {
                 setZoneState("zone_2", "critical", "위험 - 고온 가열기 가동 중 자리 비움 감지");
                 addEventLog("zone_2 상태 변경 -> 위험 - 고온 가열기 가동 중 자리 비움 감지");
@@ -394,7 +397,8 @@
             noticeToggle.setAttribute("aria-expanded", String(isOpen));
             noticeHint.innerText = isOpen ? "클릭하여 닫기" : "클릭하여 열기";
         });
-        setInterval(triggerPowerOff, 10000);
+        setInterval(triggerZone1Issue, 5000);
+        setInterval(triggerZone2Issue, 10000);
     </script>
 </body>
 </html>
